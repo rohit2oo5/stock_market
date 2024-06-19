@@ -1,8 +1,10 @@
 package com.meta.stock_market.data.repository
 
 import android.net.http.HttpException
+import com.meta.stock_market.data.csv.CsvParser
 import com.meta.stock_market.data.local.StockDatabase
 import com.meta.stock_market.data.mappers.toCompanyListing
+import com.meta.stock_market.data.mappers.toCompanyListingEntity
 import com.meta.stock_market.data.remote.StockApi
 import com.meta.stock_market.domain.model.CompanyListing
 import com.meta.stock_market.util.Resource
@@ -13,9 +15,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StockRepositoryImplementation @Inject constructor(
+class StockRepositoryImplementetion @Inject constructor(
     val api: StockApi,
-    val db: StockDatabase
+    val db: StockDatabase,
+    val companyListingParser: CsvParser<CompanyListing>
 ): StockRepository{
 
     private val dao = db.dao
@@ -25,7 +28,7 @@ class StockRepositoryImplementation @Inject constructor(
     ): Flow<Resource<List<CompanyListing>>> {
         return flow {
             emit(Resource.Loading(true))
-            val localListings = dao.serarchCompanyListing(query)
+            val localListings = dao.searchCompanyListing(query)
             emit(Resource.Success(
                 data = localListings.map { it.toCompanyListing() }
             ))
@@ -38,13 +41,29 @@ class StockRepositoryImplementation @Inject constructor(
             }
             val remoteListings = try {
                 val response = api.getListings()
-                response.byteStream()
+                companyListingParser.parse(response.byteStream())
             }catch (e: IOException){
                 e.printStackTrace()
                 emit(Resource.Error("Couldn't load data"))
+                null
             }catch (e: HttpException){
                 e.printStackTrace()
                 emit(Resource.Error("Couldn't load data"))
+                null
+            }
+
+            remoteListings?.let { listings ->
+
+                dao.clearCompanyListings()
+                dao.insertCompanyListings(
+                    listings.map { it.toCompanyListingEntity() }
+                )
+                emit(Resource.Success(
+                    data = dao
+                        .searchCompanyListing("")
+                        .map {it.toCompanyListing()}
+                ))
+                emit(Resource.Loading(false))
             }
         }
     }
