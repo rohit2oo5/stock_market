@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id ("dagger.hilt.android.plugin")
+    id ("kotlin-parcelize")
+    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
 }
 
 android {
@@ -66,4 +69,42 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // OpenCSV
+    implementation (libs.opencsv)
+
+    // Compose dependencies
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
+    implementation (libs.androidx.material.icons.extended)
+    implementation (libs.accompanist.flowlayout)
+    implementation (libs.androidx.paging.compose)
+    implementation (libs.androidx.activity.compose.v160alpha01)
+    implementation (libs.accompanist.swiperefresh)
+
+    // Compose Nav Destinations
+    implementation (libs.core)
+    ksp (libs.ksp)
+
+    // Coil
+    implementation (libs.coil.compose)
+
+    //Dagger - Hilt
+    implementation (libs.hilt.android)
+    ksp (libs.hilt.android.compiler)
+    implementation (libs.androidx.hilt.lifecycle.viewmodel)
+    ksp (libs.androidx.hilt.compiler)
+    implementation (libs.androidx.hilt.navigation.compose)
+
+    // Retrofit
+    implementation (libs.retrofit)
+    implementation (libs.converter.moshi)
+    implementation (libs.okhttp)
+    implementation (libs.logging.interceptor)
+
+    // Room
+    implementation (libs.androidx.room.runtime)
+    ksp (libs.androidx.room.compiler)
+
+    // Kotlin Extensions and Coroutines support for Room
+    implementation (libs.androidx.room.ktx)
 }
